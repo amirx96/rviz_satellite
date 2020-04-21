@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rviz
   sensor_msgs
+  vn300
 )
 
 catkin_package(CATKIN_DEPENDS nav_msgs sensor_msgs)

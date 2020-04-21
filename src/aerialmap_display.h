@@ -19,7 +19,7 @@ limitations under the License. */
 #include <ros/ros.h>
 #include <ros/time.h>
 #include <rviz/display.h>
-#include <sensor_msgs/NavSatFix.h>
+#include <vn300/ins.h>
 
 #include <OGRE/OgreTexture.h>
 #include <OGRE/OgreMaterial.h>
@@ -89,7 +89,7 @@ protected:
   /**
    * GPS topic callback
    */
-  void navFixCallback(sensor_msgs::NavSatFixConstPtr const& msg);
+  void navFixCallback(vn300::insConstPtr const& msg);
 
   /**
    * Load images to cache (non-blocking)
@@ -156,7 +156,7 @@ protected:
   // tile management
   bool dirty_;
   bool received_msg_;
-  sensor_msgs::NavSatFix ref_fix_;
+  vn300::ins ref_fix_;
   TileCacheDelay<OgreTile> tileCache_;
   /// Last request()ed tile id (which is the center tile)
   boost::optional<TileId> lastCenterTile_;
@@ -170,7 +170,7 @@ protected:
     // according to https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames
     int constexpr tile_w_h_px = 256;
 
-    auto const resolution = zoomToResolution(ref_fix_.latitude, zoom_);
+    auto const resolution = zoomToResolution(ref_fix_.LLA.x, zoom_);
     double const tile_w_h_m = tile_w_h_px * resolution;
     return tile_w_h_m;
   }

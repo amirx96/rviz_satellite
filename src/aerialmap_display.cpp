@@ -46,7 +46,7 @@ namespace rviz
 AerialMapDisplay::AerialMapDisplay() : Display(), dirty_(false), received_msg_(false)
 {
   topic_property_ =
-      new RosTopicProperty("Topic", "", QString::fromStdString(ros::message_traits::datatype<sensor_msgs::NavSatFix>()),
+      new RosTopicProperty("Topic", "", QString::fromStdString(ros::message_traits::datatype<vn300::ins>()),
                            "sensor_msgs::NavSatFix topic to subscribe to.", this, SLOT(updateTopic()));
 
   alpha_property_ =
@@ -248,7 +248,7 @@ void AerialMapDisplay::update(float, float)
   context_->queueRender();
 }
 
-void AerialMapDisplay::navFixCallback(sensor_msgs::NavSatFixConstPtr const& msg)
+void AerialMapDisplay::navFixCallback(vn300::insConstPtr const& msg)
 {
   ref_fix_ = *msg;
 
@@ -280,7 +280,7 @@ void AerialMapDisplay::loadImagery()
     return;
   }
 
-  TileId tileId{ tile_url_, fromWGSCoordinate({ ref_fix_.latitude, ref_fix_.longitude }, zoom_), zoom_ };
+  TileId tileId{ tile_url_, fromWGSCoordinate({ ref_fix_.LLA.x, ref_fix_.LLA.y }, zoom_), zoom_ };
   if (!lastCenterTile_ || !(tileId == *lastCenterTile_))
   {
     lastCenterTile_ = tileId;
@@ -331,7 +331,7 @@ void AerialMapDisplay::assembleScene()
     tileCache_.request({ *lastCenterTile_, blocks_ });
   }
 
-  TileId tileId{ tile_url_, fromWGSCoordinate({ ref_fix_.latitude, ref_fix_.longitude }, zoom_), zoom_ };
+  TileId tileId{ tile_url_, fromWGSCoordinate({ ref_fix_.LLA.x, ref_fix_.LLA.y }, zoom_), zoom_ };
   Area area(tileId, blocks_);
 
   TileCacheGuard guard(tileCache_);
@@ -533,7 +533,7 @@ void AerialMapDisplay::transformAerialMap()
   }
 
   // the frame "map" is defined here: https://www.ros.org/reps/rep-0105.html#map
-  std::string const static frameMap = "map";
+  std::string const static frameMap = "world";
   std::string const frameNavSatFix = ref_fix_.header.frame_id;
 
   // rotation from the fixed frame into the map frame
@@ -575,7 +575,7 @@ void AerialMapDisplay::transformAerialMap()
   // "NavSatFix to fixed frame". Thus we can calculate "AerialMap to fixed frame".
 
   // The "center tile" is by definition always the tile where the NavSatFix is.
-  auto const centerTile = fromWGSCoordinate<double>({ ref_fix_.latitude, ref_fix_.longitude }, zoom_);
+  auto const centerTile = fromWGSCoordinate<double>({ ref_fix_.LLA.x, ref_fix_.LLA.y }, zoom_);
 
   // In assembleScene() we shifted the AerialMap so that the center tile's left-bottom corner has the coordinate (0,0).
   // Therefore we can calculate the NavSatFix coordinate (in the AerialMap frame) by just looking at the fractional part
